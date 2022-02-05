@@ -21,6 +21,25 @@ defmodule Matcher.Extension.Expectation do
     [pid: pid]
   end
   ```
+
+  ## Formatter
+
+  If you don't want that the formatter puts arguments of `expect/2`, `expect/3` and `expect/4` in parentheses,
+  you can add options to `.formatter.exs`.
+
+  ```elixir
+  [
+    locals_without_parens: [expect: 2, expect: 3, expect: 4] # add this line
+  ]
+  ```
+
+  or
+
+  ```elixir
+  [
+    import_deps: [:matcher_extension] # add this line
+  ]
+  ```
   """
 
   @self_diagnosis System.get_env("MATCHER_EXTENSION_SELF_DIAGNOSIS") == "1"

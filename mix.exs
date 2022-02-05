@@ -8,6 +8,7 @@ defmodule MatcherExtension.MixProject do
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
       dialyzer: dialyzer()
     ]
   end
@@ -23,6 +24,12 @@ defmodule MatcherExtension.MixProject do
       {:credo, "~> 1.6", only: :dev, runtime: false},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:ex_doc, "~> 0.28.0", only: :dev, runtime: false}
+    ]
+  end
+
+  defp package do
+    [
+      files: ~w(.formatter.exs)
     ]
   end
 
