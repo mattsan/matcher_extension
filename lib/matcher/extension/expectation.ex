@@ -23,6 +23,21 @@ defmodule Matcher.Extension.Expectation do
   ```
   """
 
+  @self_diagnosis System.get_env("MATCHER_EXTENSION_SELF_DIAGNOSIS") == "1"
+
+  @doc false
+  defmacro assert_result(expression_string, expected, actual) do
+    if @self_diagnosis do
+      quote bind_quoted: [expression_string: expression_string, expected: expected, actual: actual] do
+        %{expression: expression_string, expected: expected, actual: actual}
+      end
+    else
+      quote bind_quoted: [expression_string: expression_string, expected: expected, actual: actual] do
+        assert expected == actual, Matcher.Extension.Message.format(expression_string, expected, actual)
+      end
+    end
+  end
+
   @doc """
   Expects not to change.
 
@@ -44,7 +59,7 @@ defmodule Matcher.Extension.Expectation do
       unquote(operation)
       actual = unquote(expression)
 
-      assert expected == actual, Matcher.Extension.Message.format(unquote(expression_string), expected, actual)
+      assert_result(unquote(expression_string), expected, actual)
     end
   end
 
@@ -80,7 +95,7 @@ defmodule Matcher.Extension.Expectation do
       expected = %{from: unquote(expected)}
       actual = %{from: actual}
 
-      assert expected == actual, Matcher.Extension.Message.format(unquote(expression_string), expected, actual)
+      assert_result(unquote(expression_string), expected, actual)
     end
   end
 
@@ -95,7 +110,7 @@ defmodule Matcher.Extension.Expectation do
       expected = %{by: unquote(expected)}
       actual = %{by: actual2 - actual1}
 
-      assert expected == actual, Matcher.Extension.Message.format(unquote(expression_string), expected, actual)
+      assert_result(unquote(expression_string), expected, actual)
     end
   end
 
@@ -110,7 +125,7 @@ defmodule Matcher.Extension.Expectation do
       expected = %{to: unquote(expected)}
       actual = %{to: actual}
 
-      assert expected == actual, Matcher.Extension.Message.format(unquote(expression_string), expected, actual)
+      assert_result(unquote(expression_string), expected, actual)
     end
   end
 
@@ -137,7 +152,7 @@ defmodule Matcher.Extension.Expectation do
       expected = %{from: unquote(expected1), to: unquote(expected2)}
       actual = %{from: actual1, to: actual2}
 
-      assert expected == actual, Matcher.Extension.Message.format(unquote(expression_string), expected, actual)
+      assert_result(unquote(expression_string), expected, actual)
     end
   end
 end
