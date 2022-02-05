@@ -1,47 +1,36 @@
 defmodule Matcher.Extension.Message do
   @moduledoc false
 
-  def format(expression, %{from: from, to: _} = expected, %{from: from, to: _} = actual) do
-    IO.chardata_to_string([
-      "expected ",
-      inspect(expression),
-      " to have changed to ",
-      inspect(expected.to),
-      ", but is now ",
-      inspect(actual.to)
-    ])
-  end
-
-  def format(expression, %{from: _, to: _} = expected, %{from: _, to: _} = actual) do
+  def format(expression, %{from: expected}, %{from: actual}) when expected != actual do
     IO.chardata_to_string([
       "expected ",
       inspect(expression),
       " to have initially been ",
-      inspect(expected.from),
+      inspect(expected),
       ", but was ",
-      inspect(actual.from)
+      inspect(actual)
     ])
   end
 
-  def format(expression, %{to: _} = expected, %{to: _} = actual) do
+  def format(expression, %{to: expected}, %{to: actual}) do
     IO.chardata_to_string([
       "expected ",
       inspect(expression),
       " to have changed to ",
-      inspect(expected.to),
+      inspect(expected),
       ", but is now ",
-      inspect(actual.to)
+      inspect(actual)
     ])
   end
 
-  def format(expression, %{by: _} = expected, %{by: _} = actual) do
+  def format(expression, %{by: expected}, %{by: actual}) do
     IO.chardata_to_string([
       "expected ",
       inspect(expression),
       " to have changed by ",
-      inspect(expected.by),
+      inspect(expected),
       ", but was changed by ",
-      inspect(actual.by)
+      inspect(actual)
     ])
   end
 
