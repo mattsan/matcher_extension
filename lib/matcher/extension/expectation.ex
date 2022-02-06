@@ -42,17 +42,29 @@ defmodule Matcher.Extension.Expectation do
   ```
   """
 
+  import Matcher.Extension.Message
+
   @self_diagnosis System.get_env("MATCHER_EXTENSION_SELF_DIAGNOSIS") == "1"
 
   @doc false
-  defmacro assert_result(expression_string, expected, actual) do
-    if @self_diagnosis do
-      quote bind_quoted: [expression_string: expression_string, expected: expected, actual: actual] do
-        %{expression: expression_string, expected: expected, actual: actual}
+  defmacro eval_result(result)
+
+  if @self_diagnosis do
+    defmacro eval_result(result) do
+      quote do
+        unquote(result)
       end
-    else
-      quote bind_quoted: [expression_string: expression_string, expected: expected, actual: actual] do
-        assert expected == actual, Matcher.Extension.Message.format(expression_string, expected, actual)
+    end
+  else
+    defmacro eval_result(result) do
+      quote do
+        case unquote(result) do
+          {:error, message} ->
+            flunk(message)
+
+          _ ->
+            true
+        end
       end
     end
   end
@@ -75,10 +87,17 @@ defmodule Matcher.Extension.Expectation do
 
     quote do
       expected = unquote(expression)
+
       unquote(operation)
+
       actual = unquote(expression)
 
-      assert_result(unquote(expression_string), expected, actual)
+      if expected == actual do
+        :ok
+      else
+        {:error, message2(unquote(expression_string), expected, actual)}
+      end
+      |> eval_result()
     end
   end
 
@@ -88,48 +107,68 @@ defmodule Matcher.Extension.Expectation do
   ## Examples
 
   ```elixir
-  test "to change by", %{pid: pid} do
-    expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), by(1)
+  test "not to change from", %{pid: pid} do
+    expect put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo)), from(0)
+  end
+
+  test "to change from", %{pid: pid} do
+    expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(0)
   end
 
   test "to change to", %{pid: pid} do
     expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), to(1)
   end
 
-  test "not to change from", %{pid: pid} do
-    expect put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo)), from(0)
+  test "to change by", %{pid: pid} do
+    expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), by(1)
   end
   ```
   """
   defmacro expect(operation, expression, from_or_by_or_to)
 
-  defmacro expect(operation, {:not_to_change, _, [expression]}, {:from, _, [expected]}) do
-    expression_string = Macro.to_string(expression)
-
-    quote do
-      unquote(expression)
-      unquote(operation)
-      actual = unquote(expression)
-
-      expected = %{from: unquote(expected)}
-      actual = %{from: actual}
-
-      assert_result(unquote(expression_string), expected, actual)
-    end
-  end
-
-  defmacro expect(operation, {:to_change, _, [expression]}, {:by, _, [expected]}) do
+  defmacro expect(operation, {:not_to_change, _, [expression]}, {:from, _, [from]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
       actual1 = unquote(expression)
-      unquote(operation)
-      actual2 = unquote(expression)
 
-      expected = %{by: unquote(expected)}
-      actual = %{by: actual2 - actual1}
+      if unquote(from) != actual1 do
+        {:error, message1(unquote(expression_string), unquote(from), actual1)}
+      else
+        unquote(operation)
 
-      assert_result(unquote(expression_string), expected, actual)
+        actual2 = unquote(expression)
+
+        if unquote(from) == actual2 do
+          :ok
+        else
+          {:error, message2(unquote(expression_string), unquote(from), actual2)}
+        end
+      end
+      |> eval_result()
+    end
+  end
+
+  defmacro expect(operation, {:to_change, _, [expression]}, {:from, _, [from]}) do
+    expression_string = Macro.to_string(expression)
+
+    quote do
+      actual1 = unquote(expression)
+
+      if unquote(from) != actual1 do
+        {:error, message1(unquote(expression_string), unquote(from), actual1)}
+      else
+        unquote(operation)
+
+        actual2 = unquote(expression)
+
+        if unquote(from) != actual2 do
+          :ok
+        else
+          {:error, message3(unquote(expression_string), unquote(from))}
+        end
+      end
+      |> eval_result()
     end
   end
 
@@ -138,13 +177,38 @@ defmodule Matcher.Extension.Expectation do
 
     quote do
       unquote(expression)
+
       unquote(operation)
+
       actual = unquote(expression)
 
-      expected = %{to: unquote(expected)}
-      actual = %{to: actual}
+      if unquote(expected) == actual do
+        :ok
+      else
+        {:error, message4(unquote(expression_string), unquote(expected), actual)}
+      end
+      |> eval_result()
+    end
+  end
 
-      assert_result(unquote(expression_string), expected, actual)
+  defmacro expect(operation, {:to_change, _, [expression]}, {:by, _, [expected]}) do
+    expression_string = Macro.to_string(expression)
+
+    quote do
+      actual1 = unquote(expression)
+
+      unquote(operation)
+
+      actual2 = unquote(expression)
+
+      actual = actual2 - actual1
+
+      if unquote(expected) == actual do
+        :ok
+      else
+        {:error, message5(unquote(expression_string), unquote(expected), actual)}
+      end
+      |> eval_result()
     end
   end
 
@@ -160,18 +224,26 @@ defmodule Matcher.Extension.Expectation do
   """
   defmacro expect(operation, expression, from, to)
 
-  defmacro expect(operation, {:to_change, _, [expression]}, {:from, _, [expected1]}, {:to, _, [expected2]}) do
+  defmacro expect(operation, {:to_change, _, [expression]}, {:from, _, [from]}, {:to, _, [to]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
       actual1 = unquote(expression)
-      unquote(operation)
-      actual2 = unquote(expression)
 
-      expected = %{from: unquote(expected1), to: unquote(expected2)}
-      actual = %{from: actual1, to: actual2}
+      if unquote(from) != actual1 do
+        {:error, message1(unquote(expression_string), unquote(from), actual1)}
+      else
+        unquote(operation)
 
-      assert_result(unquote(expression_string), expected, actual)
+        actual2 = unquote(expression)
+
+        if unquote(to) == actual2 do
+          :ok
+        else
+          {:error, message6(unquote(expression_string), unquote(to), actual2)}
+        end
+      end
+      |> eval_result()
     end
   end
 end

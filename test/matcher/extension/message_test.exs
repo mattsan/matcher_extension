@@ -5,23 +5,33 @@ defmodule Matcher.Extension.MessageTest do
 
   doctest Message
 
-  test "from" do
-    assert ~S(expected "++i" to have initially been 1, but was 0) == Message.format("++i", %{from: 1}, %{from: 0})
+  test "message1" do
+    assert ~S(expected "expression" to have initially been "expected", but was "actual") ==
+             Message.message1("expression", "expected", "actual")
   end
 
-  test "from/to" do
-    assert ~S(expected "++i" to have changed to 2, but is now 1) == Message.format("++i", %{from: 0, to: 2}, %{from: 0, to: 1})
+  test "message2" do
+    assert ~S(expected "expression" not to have changed, but did change from "expected" to "actual") ==
+             Message.message2("expression", "expected", "actual")
   end
 
-  test "to" do
-    assert ~S(expected "++i" to have changed to 1, but is now 0) == Message.format("++i", %{to: 1}, %{to: 0})
+  test "message3" do
+    assert ~S(expected "expression" to have changed from "from", but did not change) ==
+             Message.message3("expression", "from")
   end
 
-  test "by" do
-    assert ~S(expected "++i" to have changed by 1, but was changed by 0) == Message.format("++i", %{by: 1}, %{by: 0})
+  test "message4" do
+    assert ~S(expected "expression" to have changed to "expected", but is now "actual") ==
+             Message.message4("expression", "expected", "actual")
   end
 
-  test "others" do
-    assert ~S(expected "++i" not to have changed, but did change from 1 to 0) == Message.format("++i", 1, 0)
+  test "message5" do
+    assert ~S(expected "expression" to have changed by "expected", but was changed by "actual") ==
+             Message.message5("expression", "expected", "actual")
+  end
+
+  test "message6" do
+    assert ~S(expected "expression" to have changed from "from" to "to", but did not change) ==
+             Message.message6("expression", "from", "to")
   end
 end
