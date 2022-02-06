@@ -10,7 +10,7 @@ by adding `matcher_extension` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:matcher_extension, "~> 0.1.0"}
+    {:matcher_extension, "~> 0.1.0", only: [:dev, :test]}
   ]
 end
 ```
