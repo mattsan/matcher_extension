@@ -49,14 +49,12 @@ defmodule Matcher.Extension.Expectation do
   @doc false
   defmacro eval_result(result)
 
-  if @self_diagnosis do
-    defmacro eval_result(result) do
+  defmacro eval_result(result) do
+    if @self_diagnosis do
       quote do
         unquote(result)
       end
-    end
-  else
-    defmacro eval_result(result) do
+    else
       quote do
         case unquote(result) do
           {:error, message} ->
