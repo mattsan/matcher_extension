@@ -84,16 +84,16 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
-      expected = unquote(expression)
+      previous_value = unquote(expression)
 
       unquote(operation)
 
       case unquote(expression) do
-        ^expected ->
+        ^previous_value ->
           :ok
 
-        actual ->
-          {:error, message2(unquote(expression_string), expected, actual)}
+        present_value ->
+          {:error, changed_error(unquote(expression_string), expected: previous_value, actual: present_value)}
       end
       |> eval_result()
     end
@@ -138,12 +138,12 @@ defmodule Matcher.Extension.Expectation do
             ^from ->
               :ok
 
-            actual2 ->
-              {:error, message2(unquote(expression_string), from, actual2)}
+            present_value ->
+              {:error, changed_error(unquote(expression_string), expected: from, actual: present_value)}
           end
 
-        actual1 ->
-          {:error, message1(unquote(expression_string), from, actual1)}
+        previous_value ->
+          {:error, initializing_error(unquote(expression_string), expected: from, actual: previous_value)}
       end
       |> eval_result()
     end
@@ -161,61 +161,61 @@ defmodule Matcher.Extension.Expectation do
 
           case unquote(expression) do
             ^from ->
-              {:error, message3(unquote(expression_string), from)}
+              {:error, unchanged_error(unquote(expression_string), from: from)}
 
             _ ->
               :ok
           end
 
-        actual1 ->
-          {:error, message1(unquote(expression_string), from, actual1)}
+        previous_value ->
+          {:error, initializing_error(unquote(expression_string), expected: from, actual: previous_value)}
       end
       |> eval_result()
     end
   end
 
-  defmacro expect(operation, {:to_change, _, [expression]}, {:to, _, [expected]}) do
+  defmacro expect(operation, {:to_change, _, [expression]}, {:to, _, [to]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
-      expected = unquote(expected)
+      to = unquote(to)
 
-      actual1 = unquote(expression)
+      previous_value = unquote(expression)
 
       unquote(operation)
 
       case unquote(expression) do
-        ^actual1 ->
-          {:error, message7(unquote(expression_string), expected)}
+        ^previous_value ->
+          {:error, unchanged_error(unquote(expression_string), to: to)}
 
-        ^expected ->
+        ^to ->
           :ok
 
-        actual2 ->
-          {:error, message4(unquote(expression_string), expected, actual2)}
+        present_value ->
+          {:error, invalid_change_error(unquote(expression_string), to: to, actual: present_value)}
       end
       |> eval_result()
     end
   end
 
-  defmacro expect(operation, {:to_change, _, [expression]}, {:by, _, [expected]}) do
+  defmacro expect(operation, {:to_change, _, [expression]}, {:by, _, [by]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
-      expected = unquote(expected)
+      by = unquote(by)
 
-      actual1 = unquote(expression)
+      previous_value = unquote(expression)
 
       unquote(operation)
 
-      actual2 = unquote(expression)
+      present_value = unquote(expression)
 
-      case actual2 - actual1 do
-        ^expected ->
+      case present_value - previous_value do
+        ^by ->
           :ok
 
         actual ->
-          {:error, message5(unquote(expression_string), expected, actual)}
+          {:error, invalid_change_error(unquote(expression_string), by: by, actual: actual)}
       end
       |> eval_result()
     end
@@ -248,12 +248,12 @@ defmodule Matcher.Extension.Expectation do
             ^to ->
               :ok
 
-            actual2 ->
-              {:error, message6(unquote(expression_string), to, actual2)}
+            present_value ->
+              {:error, unchanged_error(unquote(expression_string), expected: to, actual: present_value)}
           end
 
-        actual1 ->
-          {:error, message1(unquote(expression_string), from, actual1)}
+        previous_value ->
+          {:error, initializing_error(unquote(expression_string), expected: from, actual: previous_value)}
       end
       |> eval_result()
     end

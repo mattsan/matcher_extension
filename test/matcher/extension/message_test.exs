@@ -5,38 +5,38 @@ defmodule Matcher.Extension.MessageTest do
 
   doctest Message
 
-  test "message1" do
+  test "initializing_error/3" do
     assert ~S(expected "expression" to have initially been "expected", but was "actual") ==
-             Message.message1("expression", "expected", "actual")
+             Message.initializing_error("expression", expected: "expected", actual: "actual")
   end
 
-  test "message2" do
+  test "changed_error/3" do
     assert ~S(expected "expression" not to have changed, but did change from "expected" to "actual") ==
-             Message.message2("expression", "expected", "actual")
+             Message.changed_error("expression", expected: "expected", actual: "actual")
   end
 
-  test "message3" do
+  test "unchanged_error/2 from" do
     assert ~S(expected "expression" to have changed from "from", but did not change) ==
-             Message.message3("expression", "from")
+             Message.unchanged_error("expression", from: "from")
   end
 
-  test "message4" do
+  test "invalid_change_error/3 to" do
     assert ~S(expected "expression" to have changed to "expected", but is now "actual") ==
-             Message.message4("expression", "expected", "actual")
+             Message.invalid_change_error("expression", to: "expected", actual: "actual")
   end
 
-  test "message5" do
+  test "invalid_change_error/3 by" do
     assert ~S(expected "expression" to have changed by "expected", but was changed by "actual") ==
-             Message.message5("expression", "expected", "actual")
+             Message.invalid_change_error("expression", by: "expected", actual: "actual")
   end
 
-  test "message6" do
-    assert ~S(expected "expression" to have changed from "from" to "to", but did not change) ==
-             Message.message6("expression", "from", "to")
+  test "unchanged_error/3" do
+    assert ~S(expected "expression" to have changed from "expected" to "actual", but did not change) ==
+             Message.unchanged_error("expression", expected: "expected", actual: "actual")
   end
 
-  test "message7" do
+  test "unchanged_error/2 to" do
     assert ~S(expected "expression" to have changed to "to", but did not change) ==
-             Message.message7("expression", "to")
+             Message.unchanged_error("expression", to: "to")
   end
 end

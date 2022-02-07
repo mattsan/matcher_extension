@@ -1,82 +1,31 @@
 defmodule Matcher.Extension.Message do
   @moduledoc false
 
-  require EEx
-
-  EEx.function_from_string(
-    :defp,
-    :error_message1,
-    "expected <%= expression %> to have initially been <%= expected %>, but was <%= actual %>",
-    [:expression, :expected, :actual]
-  )
-
-  EEx.function_from_string(
-    :defp,
-    :error_message2,
-    "expected <%= expression %> not to have changed, but did change from <%= expected %> to <%= actual %>",
-    [:expression, :expected, :actual]
-  )
-
-  EEx.function_from_string(
-    :defp,
-    :error_message3,
-    "expected <%= expression %> to have changed from <%= from %>, but did not change",
-    [:expression, :from]
-  )
-
-  EEx.function_from_string(
-    :defp,
-    :error_message4,
-    "expected <%= expression %> to have changed to <%= expected %>, but is now <%= actual %>",
-    [:expression, :expected, :actual]
-  )
-
-  EEx.function_from_string(
-    :defp,
-    :error_message5,
-    "expected <%= expression %> to have changed by <%= expected %>, but was changed by <%= actual %>",
-    [:expression, :expected, :actual]
-  )
-
-  EEx.function_from_string(
-    :defp,
-    :error_message6,
-    "expected <%= expression %> to have changed from <%= from %> to <%= to %>, but did not change",
-    [:expression, :from, :to]
-  )
-
-  EEx.function_from_string(
-    :defp,
-    :error_message7,
-    "expected <%= expression %> to have changed to <%= to %>, but did not change",
-    [:expression, :to]
-  )
-
-  def message1(expression, expected, actual) do
-    error_message1(inspect(expression), inspect(expected), inspect(actual))
+  def initializing_error(expression, expected: expected, actual: actual) do
+    "expected #{inspect(expression)} to have initially been #{inspect(expected)}, but was #{inspect(actual)}"
   end
 
-  def message2(expression, expected, actual) do
-    error_message2(inspect(expression), inspect(expected), inspect(actual))
+  def invalid_change_error(expression, to: expected, actual: actual) do
+    "expected #{inspect(expression)} to have changed to #{inspect(expected)}, but is now #{inspect(actual)}"
   end
 
-  def message3(expression, from) do
-    error_message3(inspect(expression), inspect(from))
+  def invalid_change_error(expression, by: expected, actual: actual) do
+    "expected #{inspect(expression)} to have changed by #{inspect(expected)}, but was changed by #{inspect(actual)}"
   end
 
-  def message4(expression, expected, actual) do
-    error_message4(inspect(expression), inspect(expected), inspect(actual))
+  def changed_error(expression, expected: expected, actual: actual) do
+    "expected #{inspect(expression)} not to have changed, but did change from #{inspect(expected)} to #{inspect(actual)}"
   end
 
-  def message5(expression, expected, actual) do
-    error_message5(inspect(expression), inspect(expected), inspect(actual))
+  def unchanged_error(expression, from: from) do
+    "expected #{inspect(expression)} to have changed from #{inspect(from)}, but did not change"
   end
 
-  def message6(expression, from, to) do
-    error_message6(inspect(expression), inspect(from), inspect(to))
+  def unchanged_error(expression, to: to) do
+    "expected #{inspect(expression)} to have changed to #{inspect(to)}, but did not change"
   end
 
-  def message7(expression, to) do
-    error_message7(inspect(expression), inspect(to))
+  def unchanged_error(expression, expected: expected, actual: actual) do
+    "expected #{inspect(expression)} to have changed from #{inspect(expected)} to #{inspect(actual)}, but did not change"
   end
 end
