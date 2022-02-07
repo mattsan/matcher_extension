@@ -130,19 +130,20 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
+      from = unquote(from)
       actual1 = unquote(expression)
 
-      if unquote(from) != actual1 do
-        {:error, message1(unquote(expression_string), unquote(from), actual1)}
+      if from != actual1 do
+        {:error, message1(unquote(expression_string), from, actual1)}
       else
         unquote(operation)
 
         actual2 = unquote(expression)
 
-        if unquote(from) == actual2 do
+        if from == actual2 do
           :ok
         else
-          {:error, message2(unquote(expression_string), unquote(from), actual2)}
+          {:error, message2(unquote(expression_string), from, actual2)}
         end
       end
       |> eval_result()
@@ -153,19 +154,20 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
+      from = unquote(from)
       actual1 = unquote(expression)
 
-      if unquote(from) != actual1 do
-        {:error, message1(unquote(expression_string), unquote(from), actual1)}
+      if from != actual1 do
+        {:error, message1(unquote(expression_string), from, actual1)}
       else
         unquote(operation)
 
         actual2 = unquote(expression)
 
-        if unquote(from) != actual2 do
+        if from != actual2 do
           :ok
         else
-          {:error, message3(unquote(expression_string), unquote(from))}
+          {:error, message3(unquote(expression_string), from)}
         end
       end
       |> eval_result()
@@ -176,16 +178,18 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
+      expected = unquote(expected)
+
       unquote(expression)
 
       unquote(operation)
 
       actual = unquote(expression)
 
-      if unquote(expected) == actual do
+      if expected == actual do
         :ok
       else
-        {:error, message4(unquote(expression_string), unquote(expected), actual)}
+        {:error, message4(unquote(expression_string), expected, actual)}
       end
       |> eval_result()
     end
@@ -195,6 +199,7 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
+      expected = unquote(expected)
       actual1 = unquote(expression)
 
       unquote(operation)
@@ -203,10 +208,10 @@ defmodule Matcher.Extension.Expectation do
 
       actual = actual2 - actual1
 
-      if unquote(expected) == actual do
+      if expected == actual do
         :ok
       else
-        {:error, message5(unquote(expression_string), unquote(expected), actual)}
+        {:error, message5(unquote(expression_string), expected, actual)}
       end
       |> eval_result()
     end
@@ -228,19 +233,21 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
+      from = unquote(from)
+      to = unquote(to)
       actual1 = unquote(expression)
 
-      if unquote(from) != actual1 do
-        {:error, message1(unquote(expression_string), unquote(from), actual1)}
+      if from != actual1 do
+        {:error, message1(unquote(expression_string), from, actual1)}
       else
         unquote(operation)
 
         actual2 = unquote(expression)
 
-        if unquote(to) == actual2 do
+        if to == actual2 do
           :ok
         else
-          {:error, message6(unquote(expression_string), unquote(to), actual2)}
+          {:error, message6(unquote(expression_string), to, actual2)}
         end
       end
       |> eval_result()
