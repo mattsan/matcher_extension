@@ -45,6 +45,13 @@ defmodule Matcher.Extension.Message do
     [:expression, :from, :to]
   )
 
+  EEx.function_from_string(
+    :defp,
+    :error_message7,
+    "expected <%= expression %> to have changed to <%= to %>, but did not change",
+    [:expression, :to]
+  )
+
   def message1(expression, expected, actual) do
     error_message1(inspect(expression), inspect(expected), inspect(actual))
   end
@@ -67,5 +74,9 @@ defmodule Matcher.Extension.Message do
 
   def message6(expression, from, to) do
     error_message6(inspect(expression), inspect(from), inspect(to))
+  end
+
+  def message7(expression, to) do
+    error_message7(inspect(expression), inspect(to))
   end
 end

@@ -71,10 +71,16 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), to(1))
     end
 
-    test "failure", %{pid: pid} do
+    test "failure (1)", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed to 1, but is now 2]}
 
       assert expected == expect(put_value(pid, :foo, 2), to_change(get_value(pid, :foo)), to(1))
+    end
+
+    test "failure (2)", %{pid: pid} do
+      expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed to 0, but did not change]}
+
+      assert expected == expect(put_value(pid, :foo, 0), to_change(get_value(pid, :foo)), to(0))
     end
   end
 

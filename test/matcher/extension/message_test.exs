@@ -34,4 +34,9 @@ defmodule Matcher.Extension.MessageTest do
     assert ~S(expected "expression" to have changed from "from" to "to", but did not change) ==
              Message.message6("expression", "from", "to")
   end
+
+  test "message7" do
+    assert ~S(expected "expression" to have changed to "to", but did not change) ==
+             Message.message7("expression", "to")
+  end
 end

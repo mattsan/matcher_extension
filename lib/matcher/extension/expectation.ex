@@ -88,12 +88,12 @@ defmodule Matcher.Extension.Expectation do
 
       unquote(operation)
 
-      actual = unquote(expression)
+      case unquote(expression) do
+        ^expected ->
+          :ok
 
-      if expected == actual do
-        :ok
-      else
-        {:error, message2(unquote(expression_string), expected, actual)}
+        actual ->
+          {:error, message2(unquote(expression_string), expected, actual)}
       end
       |> eval_result()
     end
@@ -129,20 +129,21 @@ defmodule Matcher.Extension.Expectation do
 
     quote do
       from = unquote(from)
-      actual1 = unquote(expression)
 
-      if from != actual1 do
-        {:error, message1(unquote(expression_string), from, actual1)}
-      else
-        unquote(operation)
+      case unquote(expression) do
+        ^from ->
+          unquote(operation)
 
-        actual2 = unquote(expression)
+          case unquote(expression) do
+            ^from ->
+              :ok
 
-        if from == actual2 do
-          :ok
-        else
-          {:error, message2(unquote(expression_string), from, actual2)}
-        end
+            actual2 ->
+              {:error, message2(unquote(expression_string), from, actual2)}
+          end
+
+        actual1 ->
+          {:error, message1(unquote(expression_string), from, actual1)}
       end
       |> eval_result()
     end
@@ -153,20 +154,21 @@ defmodule Matcher.Extension.Expectation do
 
     quote do
       from = unquote(from)
-      actual1 = unquote(expression)
 
-      if from != actual1 do
-        {:error, message1(unquote(expression_string), from, actual1)}
-      else
-        unquote(operation)
+      case unquote(expression) do
+        ^from ->
+          unquote(operation)
 
-        actual2 = unquote(expression)
+          case unquote(expression) do
+            ^from ->
+              {:error, message3(unquote(expression_string), from)}
 
-        if from != actual2 do
-          :ok
-        else
-          {:error, message3(unquote(expression_string), from)}
-        end
+            _ ->
+              :ok
+          end
+
+        actual1 ->
+          {:error, message1(unquote(expression_string), from, actual1)}
       end
       |> eval_result()
     end
@@ -178,16 +180,19 @@ defmodule Matcher.Extension.Expectation do
     quote do
       expected = unquote(expected)
 
-      unquote(expression)
+      actual1 = unquote(expression)
 
       unquote(operation)
 
-      actual = unquote(expression)
+      case unquote(expression) do
+        ^actual1 ->
+          {:error, message7(unquote(expression_string), expected)}
 
-      if expected == actual do
-        :ok
-      else
-        {:error, message4(unquote(expression_string), expected, actual)}
+        ^expected ->
+          :ok
+
+        actual2 ->
+          {:error, message4(unquote(expression_string), expected, actual2)}
       end
       |> eval_result()
     end
@@ -198,18 +203,19 @@ defmodule Matcher.Extension.Expectation do
 
     quote do
       expected = unquote(expected)
+
       actual1 = unquote(expression)
 
       unquote(operation)
 
       actual2 = unquote(expression)
 
-      actual = actual2 - actual1
+      case actual2 - actual1 do
+        ^expected ->
+          :ok
 
-      if expected == actual do
-        :ok
-      else
-        {:error, message5(unquote(expression_string), expected, actual)}
+        actual ->
+          {:error, message5(unquote(expression_string), expected, actual)}
       end
       |> eval_result()
     end
@@ -233,20 +239,21 @@ defmodule Matcher.Extension.Expectation do
     quote do
       from = unquote(from)
       to = unquote(to)
-      actual1 = unquote(expression)
 
-      if from != actual1 do
-        {:error, message1(unquote(expression_string), from, actual1)}
-      else
-        unquote(operation)
+      case unquote(expression) do
+        ^from ->
+          unquote(operation)
 
-        actual2 = unquote(expression)
+          case unquote(expression) do
+            ^to ->
+              :ok
 
-        if to == actual2 do
-          :ok
-        else
-          {:error, message6(unquote(expression_string), to, actual2)}
-        end
+            actual2 ->
+              {:error, message6(unquote(expression_string), to, actual2)}
+          end
+
+        actual1 ->
+          {:error, message1(unquote(expression_string), from, actual1)}
       end
       |> eval_result()
     end
