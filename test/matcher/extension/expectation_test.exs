@@ -23,7 +23,7 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo)))
     end
 
-    test "failure", %{pid: pid} do
+    test "failure: the value has changed", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" not to have changed, but did change from 0 to 1]}
 
       assert expected == expect(put_value(pid, :foo, 1), not_to_change(get_value(pid, :foo)))
@@ -35,13 +35,13 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo)), from(0))
     end
 
-    test "failure (1)", %{pid: pid} do
+    test "failure: invalid initial value", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have initially been 1, but was 0]}
 
       assert expected == expect(put_value(pid, :foo, 1), not_to_change(get_value(pid, :foo)), from(1))
     end
 
-    test "failure (2)", %{pid: pid} do
+    test "failure: the value has changed", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" not to have changed, but did change from 0 to 1]}
 
       assert expected == expect(put_value(pid, :foo, 1), not_to_change(get_value(pid, :foo)), from(0))
@@ -53,13 +53,13 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(0))
     end
 
-    test "failure (1)", %{pid: pid} do
+    test "failure: invalid initial value", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have initially been 1, but was 0]}
 
       assert expected == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(1))
     end
 
-    test "failure (2)", %{pid: pid} do
+    test "failure: has not changed", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed from 0, but did not change]}
 
       assert expected == expect(put_value(pid, :foo, 0), to_change(get_value(pid, :foo)), from(0))
@@ -71,13 +71,13 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), to(1))
     end
 
-    test "failure (1)", %{pid: pid} do
+    test "failure: has changed to unexpected value", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed to 1, but is now 2]}
 
       assert expected == expect(put_value(pid, :foo, 2), to_change(get_value(pid, :foo)), to(1))
     end
 
-    test "failure (2)", %{pid: pid} do
+    test "failure: has not changed", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed to 0, but did not change]}
 
       assert expected == expect(put_value(pid, :foo, 0), to_change(get_value(pid, :foo)), to(0))
@@ -89,7 +89,7 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), by(1))
     end
 
-    test "failure", %{pid: pid} do
+    test "failure: has changed to unexpected value", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed by 1, but was changed by 2]}
 
       assert expected == expect(put_value(pid, :foo, 2), to_change(get_value(pid, :foo)), by(1))
@@ -101,13 +101,13 @@ defmodule Matcher.Extension.ExpectationTest do
       assert :ok == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(0), to(1))
     end
 
-    test "failure (1)", %{pid: pid} do
+    test "failure: invalid initial value", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have initially been 1, but was 0]}
 
       assert expected == expect(put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(1), to(1))
     end
 
-    test "failure (2)", %{pid: pid} do
+    test "failure: has not changed", %{pid: pid} do
       expected = {:error, ~S[expected "get_value(pid, :foo)" to have changed from 0 to 1, but did not change]}
 
       assert expected == expect(put_value(pid, :foo, 0), to_change(get_value(pid, :foo)), from(0), to(1))
