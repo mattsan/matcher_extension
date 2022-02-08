@@ -42,17 +42,26 @@ defmodule Matcher.Extension.Expectation do
   ```
   """
 
+  import Matcher.Extension.Message
+
   @self_diagnosis System.get_env("MATCHER_EXTENSION_SELF_DIAGNOSIS") == "1"
 
   @doc false
-  defmacro assert_result(expression_string, expected, actual) do
+  @spec eval_result({:error, String.t()} | :ok) :: any()
+  defmacro eval_result(result) do
     if @self_diagnosis do
-      quote bind_quoted: [expression_string: expression_string, expected: expected, actual: actual] do
-        %{expression: expression_string, expected: expected, actual: actual}
+      quote do
+        unquote(result)
       end
     else
-      quote bind_quoted: [expression_string: expression_string, expected: expected, actual: actual] do
-        assert expected == actual, Matcher.Extension.Message.format(expression_string, expected, actual)
+      quote do
+        case unquote(result) do
+          {:error, message} ->
+            flunk(message)
+
+          :ok ->
+            true
+        end
       end
     end
   end
@@ -74,11 +83,18 @@ defmodule Matcher.Extension.Expectation do
     expression_string = Macro.to_string(expression)
 
     quote do
-      expected = unquote(expression)
-      unquote(operation)
-      actual = unquote(expression)
+      previous_value = unquote(expression)
 
-      assert_result(unquote(expression_string), expected, actual)
+      unquote(operation)
+
+      case unquote(expression) do
+        ^previous_value ->
+          :ok
+
+        present_value ->
+          {:error, has_changed_error(unquote(expression_string), from: previous_value, to: present_value)}
+      end
+      |> eval_result()
     end
   end
 
@@ -88,63 +104,119 @@ defmodule Matcher.Extension.Expectation do
   ## Examples
 
   ```elixir
-  test "to change by", %{pid: pid} do
-    expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), by(1)
+  test "not to change from", %{pid: pid} do
+    expect put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo)), from(0)
+  end
+
+  test "to change from", %{pid: pid} do
+    expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(0)
   end
 
   test "to change to", %{pid: pid} do
     expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), to(1)
   end
 
-  test "not to change from", %{pid: pid} do
-    expect put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo)), from(0)
+  test "to change by", %{pid: pid} do
+    expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), by(1)
   end
   ```
   """
-  defmacro expect(operation, expression, from_or_by_or_to)
+  defmacro expect(operation, expression, from_or_to_or_by)
 
-  defmacro expect(operation, {:not_to_change, _, [expression]}, {:from, _, [expected]}) do
+  defmacro expect(operation, {:not_to_change, _, [expression]}, {:from, _, [from]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
-      unquote(expression)
-      unquote(operation)
-      actual = unquote(expression)
+      from = unquote(from)
 
-      expected = %{from: unquote(expected)}
-      actual = %{from: actual}
+      case unquote(expression) do
+        ^from ->
+          unquote(operation)
 
-      assert_result(unquote(expression_string), expected, actual)
+          case unquote(expression) do
+            ^from ->
+              :ok
+
+            present_value ->
+              {:error, has_changed_error(unquote(expression_string), from: from, to: present_value)}
+          end
+
+        previous_value ->
+          {:error, initial_value_error(unquote(expression_string), expected: from, actual: previous_value)}
+      end
+      |> eval_result()
     end
   end
 
-  defmacro expect(operation, {:to_change, _, [expression]}, {:by, _, [expected]}) do
+  defmacro expect(operation, {:to_change, _, [expression]}, {:from, _, [from]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
-      actual1 = unquote(expression)
-      unquote(operation)
-      actual2 = unquote(expression)
+      from = unquote(from)
 
-      expected = %{by: unquote(expected)}
-      actual = %{by: actual2 - actual1}
+      case unquote(expression) do
+        ^from ->
+          unquote(operation)
 
-      assert_result(unquote(expression_string), expected, actual)
+          case unquote(expression) do
+            ^from ->
+              {:error, has_not_changed_error(unquote(expression_string), from: from)}
+
+            _ ->
+              :ok
+          end
+
+        previous_value ->
+          {:error, initial_value_error(unquote(expression_string), expected: from, actual: previous_value)}
+      end
+      |> eval_result()
     end
   end
 
-  defmacro expect(operation, {:to_change, _, [expression]}, {:to, _, [expected]}) do
+  defmacro expect(operation, {:to_change, _, [expression]}, {:to, _, [to]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
-      unquote(expression)
+      to = unquote(to)
+
+      previous_value = unquote(expression)
+
       unquote(operation)
-      actual = unquote(expression)
 
-      expected = %{to: unquote(expected)}
-      actual = %{to: actual}
+      case unquote(expression) do
+        ^previous_value ->
+          {:error, has_not_changed_error(unquote(expression_string), to: to)}
 
-      assert_result(unquote(expression_string), expected, actual)
+        ^to ->
+          :ok
+
+        present_value ->
+          {:error, unexpected_change_error(unquote(expression_string), to: to, actual: present_value)}
+      end
+      |> eval_result()
+    end
+  end
+
+  defmacro expect(operation, {:to_change, _, [expression]}, {:by, _, [by]}) do
+    expression_string = Macro.to_string(expression)
+
+    quote do
+      by = unquote(by)
+
+      previous_value = unquote(expression)
+
+      unquote(operation)
+
+      present_value = unquote(expression)
+
+      case present_value - previous_value do
+        ^by ->
+          :ok
+
+        actual ->
+          {:error, unexpected_change_error(unquote(expression_string), by: by, actual: actual)}
+      end
+      |> eval_result()
     end
   end
 
@@ -160,18 +232,29 @@ defmodule Matcher.Extension.Expectation do
   """
   defmacro expect(operation, expression, from, to)
 
-  defmacro expect(operation, {:to_change, _, [expression]}, {:from, _, [expected1]}, {:to, _, [expected2]}) do
+  defmacro expect(operation, {:to_change, _, [expression]}, {:from, _, [from]}, {:to, _, [to]}) do
     expression_string = Macro.to_string(expression)
 
     quote do
-      actual1 = unquote(expression)
-      unquote(operation)
-      actual2 = unquote(expression)
+      from = unquote(from)
+      to = unquote(to)
 
-      expected = %{from: unquote(expected1), to: unquote(expected2)}
-      actual = %{from: actual1, to: actual2}
+      case unquote(expression) do
+        ^from ->
+          unquote(operation)
 
-      assert_result(unquote(expression_string), expected, actual)
+          case unquote(expression) do
+            ^to ->
+              :ok
+
+            present_value ->
+              {:error, has_not_changed_error(unquote(expression_string), from: from, to: to)}
+          end
+
+        previous_value ->
+          {:error, initial_value_error(unquote(expression_string), expected: from, actual: previous_value)}
+      end
+      |> eval_result()
     end
   end
 end
