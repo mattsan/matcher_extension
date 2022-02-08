@@ -47,8 +47,7 @@ defmodule Matcher.Extension.Expectation do
   @self_diagnosis System.get_env("MATCHER_EXTENSION_SELF_DIAGNOSIS") == "1"
 
   @doc false
-  defmacro eval_result(result)
-
+  @spec eval_result({:error, String.t()} | :ok) :: any()
   defmacro eval_result(result) do
     if @self_diagnosis do
       quote do
@@ -60,7 +59,7 @@ defmodule Matcher.Extension.Expectation do
           {:error, message} ->
             flunk(message)
 
-          _ ->
+          :ok ->
             true
         end
       end
@@ -122,7 +121,7 @@ defmodule Matcher.Extension.Expectation do
   end
   ```
   """
-  defmacro expect(operation, expression, from_or_by_or_to)
+  defmacro expect(operation, expression, from_or_to_or_by)
 
   defmacro expect(operation, {:not_to_change, _, [expression]}, {:from, _, [from]}) do
     expression_string = Macro.to_string(expression)
