@@ -93,7 +93,7 @@ defmodule Matcher.Extension.Expectation do
           :ok
 
         present_value ->
-          {:error, changed_error(unquote(expression_string), expected: previous_value, actual: present_value)}
+          {:error, has_changed_error(unquote(expression_string), from: previous_value, to: present_value)}
       end
       |> eval_result()
     end
@@ -139,11 +139,11 @@ defmodule Matcher.Extension.Expectation do
               :ok
 
             present_value ->
-              {:error, changed_error(unquote(expression_string), expected: from, actual: present_value)}
+              {:error, has_changed_error(unquote(expression_string), from: from, to: present_value)}
           end
 
         previous_value ->
-          {:error, initializing_error(unquote(expression_string), expected: from, actual: previous_value)}
+          {:error, initial_value_error(unquote(expression_string), expected: from, actual: previous_value)}
       end
       |> eval_result()
     end
@@ -161,14 +161,14 @@ defmodule Matcher.Extension.Expectation do
 
           case unquote(expression) do
             ^from ->
-              {:error, unchanged_error(unquote(expression_string), from: from)}
+              {:error, has_not_changed_error(unquote(expression_string), from: from)}
 
             _ ->
               :ok
           end
 
         previous_value ->
-          {:error, initializing_error(unquote(expression_string), expected: from, actual: previous_value)}
+          {:error, initial_value_error(unquote(expression_string), expected: from, actual: previous_value)}
       end
       |> eval_result()
     end
@@ -186,13 +186,13 @@ defmodule Matcher.Extension.Expectation do
 
       case unquote(expression) do
         ^previous_value ->
-          {:error, unchanged_error(unquote(expression_string), to: to)}
+          {:error, has_not_changed_error(unquote(expression_string), to: to)}
 
         ^to ->
           :ok
 
         present_value ->
-          {:error, invalid_change_error(unquote(expression_string), to: to, actual: present_value)}
+          {:error, unexpected_change_error(unquote(expression_string), to: to, actual: present_value)}
       end
       |> eval_result()
     end
@@ -215,7 +215,7 @@ defmodule Matcher.Extension.Expectation do
           :ok
 
         actual ->
-          {:error, invalid_change_error(unquote(expression_string), by: by, actual: actual)}
+          {:error, unexpected_change_error(unquote(expression_string), by: by, actual: actual)}
       end
       |> eval_result()
     end
@@ -249,11 +249,11 @@ defmodule Matcher.Extension.Expectation do
               :ok
 
             present_value ->
-              {:error, unchanged_error(unquote(expression_string), expected: to, actual: present_value)}
+              {:error, has_not_changed_error(unquote(expression_string), from: from, to: to)}
           end
 
         previous_value ->
-          {:error, initializing_error(unquote(expression_string), expected: from, actual: previous_value)}
+          {:error, initial_value_error(unquote(expression_string), expected: from, actual: previous_value)}
       end
       |> eval_result()
     end
