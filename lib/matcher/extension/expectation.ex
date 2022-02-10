@@ -247,8 +247,11 @@ defmodule Matcher.Extension.Expectation do
             ^to ->
               :ok
 
-            present_value ->
+            ^from ->
               {:error, has_not_changed_error(unquote(expression_string), from: from, to: to)}
+
+            present_value ->
+              {:error, unexpected_change_error(unquote(expression_string), to: to, actual: present_value)}
           end
 
         previous_value ->
