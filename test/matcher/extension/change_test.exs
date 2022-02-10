@@ -1,8 +1,8 @@
-defmodule Matcher.Extension.ExpectationTest do
+defmodule Matcher.Extension.ChangeTest do
   use ExUnit.Case
-  doctest Matcher.Extension.Expectation
+  doctest Matcher.Extension.Change
 
-  import Matcher.Extension.Expectation
+  import Matcher.Extension.Change
 
   def put_value(pid, key, value) do
     Agent.update(pid, &Map.put(&1, key, value))

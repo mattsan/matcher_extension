@@ -1,6 +1,6 @@
-defmodule Matcher.Extension.Expectation do
+defmodule Matcher.Extension.Change do
   @moduledoc """
-  Add Expectations.
+  Add `change` matchers.
 
   ## Examples
 
