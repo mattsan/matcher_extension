@@ -76,6 +76,16 @@ defmodule Matcher.Extension.Change do
     expect put_value(pid, :foo, 0), not_to_change(get_value(pid, :foo))
   end
   ```
+
+  ### Block style
+
+  ```elixir
+  test "not to change", %{pid: pid} do
+    expect not_to_change(get_value(pid, :foo)) do
+      put_value(pid, :foo, 0)
+    end
+  end
+  ```
   """
   defmacro expect(operation, expression)
 
@@ -98,6 +108,10 @@ defmodule Matcher.Extension.Change do
     end
   end
 
+  defmacro expect(arg, do: operation) do
+    quote do: expect(unquote(operation), unquote(arg))
+  end
+
   @doc """
   Expects to change, or not_to change
 
@@ -118,6 +132,34 @@ defmodule Matcher.Extension.Change do
 
   test "to change by", %{pid: pid} do
     expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), by(1)
+  end
+  ```
+
+  ### Block style
+
+  ```elixir
+  test "not to change from", %{pid: pid} do
+    expect not_to_change(get_value(pid, :foo)), from(0) do
+      put_value(pid, :foo, 0)
+    end
+  end
+
+  test "to change from", %{pid: pid} do
+    expect to_change(get_value(pid, :foo)), from(0) do
+      put_value(pid, :foo, 1)
+    end
+  end
+
+  test "to change to", %{pid: pid} do
+    expect to_change(get_value(pid, :foo)), to(1) do
+      put_value(pid, :foo, 1)
+    end
+  end
+
+  test "to change by", %{pid: pid} do
+    expect to_change(get_value(pid, :foo)), by(1) do
+      put_value(pid, :foo, 1)
+    end
   end
   ```
   """
@@ -220,6 +262,10 @@ defmodule Matcher.Extension.Change do
     end
   end
 
+  defmacro expect(arg1, arg2, do: operation) do
+    quote do: expect(unquote(operation), unquote(arg1), unquote(arg2))
+  end
+
   @doc """
   Expects to change.
 
@@ -229,6 +275,17 @@ defmodule Matcher.Extension.Change do
   test "to change from to", %{pid: pid} do
     expect put_value(pid, :foo, 1), to_change(get_value(pid, :foo)), from(0), to(1)
   end
+  ```
+
+  ### Block style
+
+  ```elixir
+  test "to change from to", %{pid: pid} do
+    expect to_change(get_value(pid, :foo)), from(0), to(1) do
+      put_value(pid, :foo, 1)
+    end
+  end
+  ```
   """
   defmacro expect(operation, expression, from, to)
 
@@ -259,5 +316,9 @@ defmodule Matcher.Extension.Change do
       end
       |> eval_result()
     end
+  end
+
+  defmacro expect(arg1, arg2, arg3, do: operation) do
+    quote do: expect(unquote(operation), unquote(arg1), unquote(arg2), unquote(arg3))
   end
 end
